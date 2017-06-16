@@ -67,7 +67,6 @@ JNIEXPORT void JNICALL Java_cz_borec_vodl_bp_MainActivity_MyDetector(
 	//highlight detected items on screen (surfaceView)
 	for (unsigned int i = 0; i < highLight.size(); i++) {
 		rectangle(mRgb, highLight[i], Scalar(255, 0, 0, 255),THICKNESS);
-		//rectangle(mGr, highLight[i], Scalar(255, 0, 0, 255),THICKNESS);// if I leave this, ghosts appear...
 	}
 }
 
@@ -92,7 +91,6 @@ void detect(Mat& mGr, vector<Rect>& highLight, JNIEnv *env, jobjectArray stages)
 	//For all images in the pyramid will be performed scanning and for each window LBP computing
 	do
 	{
-
 		__android_log_print(ANDROID_LOG_DEBUG, "DEBUGR", "DETECT IS COMMING!!!");
 
 		//Rows is Y and Cols is X
@@ -100,25 +98,18 @@ void detect(Mat& mGr, vector<Rect>& highLight, JNIEnv *env, jobjectArray stages)
 		{
 			for (int x = 0; x < dst.cols - IMG_SIZE_X; x = x + THICKNESS)
 			{
-				//__android_log_print(ANDROID_LOG_VERBOSE, "DEBUGR", "detecting for: X %d,  Y %d, rows %d, cols %d", x, y, dst.rows, dst.cols);
 				Rect r(x, y, IMG_SIZE_X, IMG_SIZE_Y); // Create ROI
 				Mat window = dst(r); //Apply ROI on current image from the pyramid
 
-
-
-				//if (processLbp(window, env, stages)){
 				if (processLbp2(window, cstages)){
 					highLight.push_back(Rect(r.x * downsampled, r.y * downsampled, r.width * downsampled, r.height * downsampled ));
 				    //store detected positions of ROI into vector
 					__android_log_print(ANDROID_LOG_INFO, "DEBUGR", "******* DETECT FOUND FOR  X %d,  Y %d, rows %d, cols %d **************\n", x, y, dst.rows, dst.cols);
-
 				}
-
 			}
 		}
 
 		// going down in pyramid images hierarchy
-		//pyrDown(tmp, dst, Size(tmp.cols / 2, tmp.rows / 2));
 		resize(tmp, dst, Size(tmp.cols / 1.3, tmp.rows / 1.3), INTER_CUBIC);
 		downsampled *= 1.3;
 		tmp = dst;
@@ -136,8 +127,6 @@ int getIntensity(int width, int height, int x, int y, Mat& mat) {
 
 	for (int h = y; h < y + height; h++) {
 		for (int w = x; w < x + width; w++) {
-
-		   //__android_log_print(ANDROID_LOG_VERBOSE, "DEBUGR","SUM %d = %d + %d z X = %d, Y = %d, (BW = %d, BH =%d, x = %d, y=%d)" , sum + mat.at <uchar> (h, w), sum, mat.at <uchar> (h, w), w, h, width, height, x, y);
 
 			//mat.at has order (y, x)
 			//sum += mat.at <uchar> (h, w);
@@ -233,13 +222,9 @@ bool processLbp(Mat& window, JNIEnv *env, jobjectArray stages) {
 					positionX + (width * array[ii][0]),
 					positionY + (height * array[ii][1]), window);
 
-			//if(i == 20)
-			//__android_log_print(ANDROID_LOG_VERBOSE, "DEBUGR", " ---- LBP %d:  %d > %d ---> %d << %d ? .... X = %d, Y = %d",ii, point, middle, result, multiplier,positionX + (width * array[ii][0]),positionY + (height *array[ii][1]));
-
 			if (point > middle)
 				result = result | multiplier;
 			multiplier = multiplier << 1;
-			//__android_log_print(ANDROID_LOG_VERBOSE, "DEBUGR", " ++++ LBP %d:  %d > %d ---> %d << %d ? .... X = %d, Y = %d",ii, point, middle, result, multiplier,positionX + (width * array[ii][0]),positionY + (height *array[ii][1]));
 		}
 		myPredictionValue += predictionValues[result];
 		__android_log_print(ANDROID_LOG_VERBOSE, "DEBUGR", "STAGE %d:  RESULT %d ---> %f ..... MPV %f > negT %f?", i, result, predictionValues[result], myPredictionValue, negT);
@@ -295,9 +280,7 @@ bool processLbp2(Mat& window, CStages stages) {
 		//-------------------------------------------------------------------------------------------------------------------
 
 
-		//int * intensities = getIntensities(width,height,positionX,positionY, window);
 		int middle = getIntensity(width, height, positionX + width, positionY + height, window); // add width and high so it gets into middle
-		//int middle = intensities[4];
 
 		unsigned char result = 0;
 		unsigned char multiplier = 1;
@@ -305,25 +288,16 @@ bool processLbp2(Mat& window, CStages stages) {
 
 
 		for (int ii = 0; ii < 8; ii++) {
-
-
 			point = getIntensity(width, height,
 					positionX + (width * array[ii][0]),
 					positionY + (height * array[ii][1]), window);
-
-			//point= intensities[array[ii][0]+3*array[ii][1]];
 
 
 			if (point > middle)
 				result = result | multiplier;
 			multiplier = multiplier << 1;
-			//__android_log_print(ANDROID_LOG_VERBOSE, "DEBUGR", " ++++ LBP %d:  %d > %d ---> %d << %d ? .... X = %d, Y = %d",ii, point, middle, result, multiplier,positionX + (width * array[ii][0]),positionY + (height *array[ii][1]));
 		}
 		myPredictionValue += predictionValues[result];
-
-		//delete [] intensities;
-
-		//__android_log_print(ANDROID_LOG_VERBOSE, "DEBUGR", "STAGE %d:  RESULT %d ---> %f ..... MPV %f > negT %f?", i, result, predictionValues[result], myPredictionValue, stages.negTs[i]);
 
 
 		if (myPredictionValue < stages.negTs[i])
@@ -369,9 +343,6 @@ CStages loadStages(JNIEnv *env, jobjectArray stages){
 		//goes through all stages
 		for (int i = 0; i < len; ++i) {
 
-			//env->PushLocalFrame(10);// I counted references to be 10
-			//__android_log_print(ANDROID_LOG_VERBOSE, "DEBUGR", "pushnul sem lical frame");
-
 			jobject stage = (jobject) env->GetObjectArrayElement(stages, i);
 			jclass cls = env->GetObjectClass(stage); //todo: possible optimalization
 
@@ -399,7 +370,6 @@ CStages loadStages(JNIEnv *env, jobjectArray stages){
 			float* predictionValues = env->GetFloatArrayElements(*fArray, 0);
 			float* newPredValues = new float[256];
 
-			//std::copy(predictionValues,predictionValues + 256, newPredVaules);
 			for(int it = 0; it< 256; it++){
 				newPredValues[it] = predictionValues[it];
 			}
@@ -444,44 +414,5 @@ void freeStages(JNIEnv *env, CStages stages){
 	}
 
 	delete [] stages.predictionValuesArray;
-
-
 }
-
 }
-
-/** Gets average intensity of pixel, depending on width and height of area */
-/*
-int * getIntensities(int width, int height, int x, int y, Mat& mat) {
-
-	uchar * data = mat.data;
-	int * intensities = new int[9];
-	uchar *  pointers[9] = {data                    ,  data + width                    ,  data + 2*width,
-			                data + mat.step*height  ,  data + width + mat.step* height ,  data + 2*width + mat.step*height,
-	                        data + mat.step*2*height,  data + width + mat.step*2*height,  data + 2*width + mat.step*2*height};
-
-
-    for (int b = 0; b < height; ++b)
-    {
-        // go through all pixels in row and accumulate
-        int a = 0;
-        while (a < width)
-        {
-            for (int i = 0; i < 9; ++i)
-            {
-                intensities[i] += *pointers[i];
-                ++pointers[i];
-            }
-            ++a;
-        }
-        // set pointers to next line
-        int i;
-        for (i = 0; i < 9; ++i)
-            pointers[i] += mat.step;
-    }
-
-
-
-	return intensities;
-}
-*/

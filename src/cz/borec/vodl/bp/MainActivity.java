@@ -65,10 +65,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     private Mat                    mGray;
 
     private MenuItem               mItemPreviewRGBA;
-    //private MenuItem               mItemPreviewGray;
     private MenuItem               mItemPreviewStill;
     private MenuItem               mItemPreviewMyDetect;
-    //private MenuItem			mItemPreviewCanny;
     private MenuItem			mItemPreviewOCVJD;
     private MenuItem			mItemPreviewANDDET;
 
@@ -84,7 +82,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     private CascadeClassifier      mJavaDetector;
 
     
-    /* tohle myslim inicializuje knihovnu */
+    /* library init */
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -121,7 +119,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         
         if (parsedStages == null)
         {
-        	//Toast.makeText(getApplicationContext(), "Classifier not ready", Toast.LENGTH_LONG).show();
         	if(!parsingInProgress)
     		    new BackgroundParse().execute();
         	parsingInProgress = true;
@@ -132,10 +129,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial2_activity_surface_view);
         mOpenCvCameraView.setCvCameraViewListener(this);
         mOpenCvCameraView.enableFpsMeter();
-        //mOpenCvCameraView.setMaxFrameSize(240, 160);
-        //mOpenCvCameraView.setMaxFrameSize(320, 240);
         mOpenCvCameraView.setMaxFrameSize(176, 144);
-       //mOpenCvCameraView.setMaxFrameSize(800, 600);
     }
 
     
@@ -144,8 +138,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     public boolean onCreateOptionsMenu(Menu menu) {
         Log.i(TAG, "called onCreateOptionsMenu");
         mItemPreviewRGBA = menu.add("Cam RGBA");
-     //  mItemPreviewGray = menu.add("Preview GRAY");
-     //   mItemPreviewCanny = menu.add("Preview Canny");
         mItemPreviewStill = menu.add("Still");
         mItemPreviewMyDetect = menu.add("My Detect");
         mItemPreviewOCVJD = menu.add("OCV Detection");
@@ -198,9 +190,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-    	Log.i("cb", "Zavolal sem callback");
-    	//if (onFrameLock) return mRgba;    	
-    	//onFrameLock = true;
     	 Bitmap bmp;
     	
         final int viewMode = mViewMode;
@@ -300,14 +289,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
         if (item == mItemPreviewRGBA) {
             mViewMode = VIEW_MODE_RGBA;
-    //    } else if (item == mItemPreviewGray) {
-      //      mViewMode = VIEW_MODE_STILL2;
         } else if (item == mItemPreviewStill) {
             mViewMode = VIEW_MODE_STILL;
         } else if (item == mItemPreviewMyDetect) {
             mViewMode = VIEW_MODE_MYDETECT;
-     //   } else if (item == mItemPreviewCanny) {
-     //       mViewMode = VIEW_MODE_CANNY;
         }else if (item == mItemPreviewOCVJD) {
             mViewMode = VIEW_MODE_OCVJD;
         }else if (item == mItemPreviewANDDET) {
@@ -322,7 +307,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
 		@Override
 		protected Stage[] doInBackground(Void... params) {
-			// TODO Auto-generated method stub
 			InputStream in_s;
 			try {
 				in_s = getApplicationContext().getAssets().open(CLASSIFIER);
@@ -330,10 +314,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 				return xp.parseXML();
 				
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (XmlPullParserException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
@@ -342,12 +324,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		
 		@Override
 		protected void onPostExecute(Stage[] stages) {
-			// TODO Auto-generated method stub
 			super.onPostExecute(stages);
 			
 			parsedStages = stages;
-			//TextView display = (TextView)findViewById(R.id.info);
-			//display.setText(result);
 		}
 		
 	}
